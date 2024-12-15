@@ -167,18 +167,6 @@ const CodeEditor = (props: PropsWithForwardRef): JSX.Element => {
         }
     }, [onChange, value]);
 
-    // Negative values move the cursor to the left
-    const moveCursor = (current: number, amount: number) => {
-        const newPosition = current + amount;
-        inputRef.current?.setNativeProps({
-            selection: {
-                start: newPosition,
-                end: newPosition,
-            },
-        });
-        return newPosition;
-    };
-
     const addIndentation = (val: string) => {
         let cursorPosition = inputSelection.current.start - 1;
 
