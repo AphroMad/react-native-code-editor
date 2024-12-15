@@ -119,6 +119,11 @@ type TextInputSelectionType = {
     end: number;
 };
 
+type SelectionOperation = {
+    newText: string;
+    newSelection: { start: number; end: number };
+};
+
 const CodeEditor = (props: PropsWithForwardRef): JSX.Element => {
     const {
         style,
@@ -151,9 +156,9 @@ const CodeEditor = (props: PropsWithForwardRef): JSX.Element => {
     } = addedStyle;
 
     const [value, setValue] = useState<string>(initialValue);
+    const [selection, setSelection] = useState<TextInputSelectionType>({ start: 0, end: 0 });
     const highlighterRef = useRef<ScrollView>(null);
     const inputRef = useRef<TextInput>(null);
-    const inputSelection = useRef<TextInputSelectionType>({ start: 0, end: 0 });
 
     // Only when line numbers are showing
     const lineNumbersPadding = showLineNumbers ? 1.75 * fontSize : undefined;
@@ -167,35 +172,6 @@ const CodeEditor = (props: PropsWithForwardRef): JSX.Element => {
         }
     }, [onChange, value]);
 
-    const addIndentation = (val: string) => {
-        let cursorPosition = inputSelection.current.start - 1;
-
-        // All lines before the cursor
-        const preLines = val.substring(0, cursorPosition).split('\n');
-        const indentSize = Indentation.getSuggestedIndentSize(preLines);
-        let indentation = Indentation.createIndentString(indentSize);
-
-        // Add newline and indentation on a regular brace pair
-        const leftChar = val[cursorPosition - 1] || '';
-        const rightChar = val[cursorPosition + 1] || '';
-        if (Braces.isBracePair(leftChar, rightChar)) {
-            let addedIndentionSize = Braces.isRegularBrace(leftChar)
-                ? Math.max(indentSize - Indentation.INDENT_SIZE, 0)
-                : indentSize;
-            indentation += '\n' + Indentation.createIndentString(addedIndentionSize);
-            // Don't update local cursor position to insert all new changes in one insert call
-            moveCursor(cursorPosition, -addedIndentionSize);
-        }
-
-        return Strings.insertStringAt(val, cursorPosition, indentation);
-    };
-
-    const addClosingBrace = (val: string, key: string) => {
-        let cursorPosition = inputSelection.current.start;
-        cursorPosition = moveCursor(cursorPosition, -1);
-        return Strings.insertStringAt(val, cursorPosition, Braces.getCloseBrace(key));
-    };
-
     const handleChangeText = (text: string) => {
         setValue(Strings.convertTabsToSpaces(text));
     };
@@ -207,28 +183,13 @@ const CodeEditor = (props: PropsWithForwardRef): JSX.Element => {
     };
 
     const handleKeyPress = (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
-        const key = e.nativeEvent.key;
-        switch (key) {
-            case 'Enter':
-                setTimeout(() => {
-                    setValue((curr) => addIndentation(curr));
-                }, 10);
-                break;
-            default:
-                if (Braces.isOpenBrace(key)) {
-                    setTimeout(() => {
-                        setValue((curr) => addClosingBrace(curr, key));
-                    }, 10);
-                }
-                break;
-        }
         if (onKeyPress) {
-            onKeyPress(key);
+            onKeyPress(e.nativeEvent.key);
         }
     };
 
     const handleSelectionChange = (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-        inputSelection.current = e.nativeEvent.selection;
+        setSelection(e.nativeEvent.selection);
     };
 
     return (
@@ -258,6 +219,7 @@ const CodeEditor = (props: PropsWithForwardRef): JSX.Element => {
                     },
                 ]}
                 value={value}
+                selection={selection}
                 onChangeText={handleChangeText}
                 onScroll={handleScroll}
                 onKeyPress={handleKeyPress}
