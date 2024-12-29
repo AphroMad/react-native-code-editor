@@ -10,6 +10,7 @@ import {
     TextInputScrollEventData,
     TextInputKeyPressEventData,
     TextInputSelectionChangeEventData,
+    KeyboardAvoidingView,
 } from 'react-native';
 import SyntaxHighlighter, {
     SyntaxHighlighterStyleType,
@@ -192,49 +193,85 @@ const CodeEditor = (props: PropsWithForwardRef): JSX.Element => {
         setSelection(e.nativeEvent.selection);
     };
 
+    // Calculer la hauteur de ligne appropriée pour Android
+    const calculatedInputLineHeight = Platform.select({
+        android: fontSize * 1.5,
+        ios: inputLineHeight,
+    });
+
+    const calculatedHighlighterLineHeight = Platform.select({
+        android: fontSize * 1.5,
+        ios: addedStyle.highlighterLineHeight,
+    });
+
     return (
-        <View style={{ width, height, marginTop, marginBottom }} testID={testID}>
-            <SyntaxHighlighter
-                language={language}
-                addedStyle={addedStyle}
-                syntaxStyle={syntaxStyle}
-                scrollEnabled={false}
-                showLineNumbers={showLineNumbers}
-                testID={`${testID}-syntax-highlighter`}
-                ref={highlighterRef}
+        <KeyboardAvoidingView 
+            style={{ height: '100%' }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
+            <ScrollView 
+                style={{ flex: 1 }}
+                keyboardDismissMode="none"
+                keyboardShouldPersistTaps="handled"
             >
-                {value}
-            </SyntaxHighlighter>
-            <TextInput
-                style={[
-                    styles.input,
-                    {
-                        lineHeight: inputLineHeight,
-                        color: inputColor,
-                        fontFamily: fontFamily,
-                        fontSize: fontSize,
-                        padding,
-                        paddingTop: padding,
-                        paddingLeft: lineNumbersPadding,
-                    },
-                ]}
-                value={value}
-                selection={selection}
-                onChangeText={handleChangeText}
-                onScroll={handleScroll}
-                onKeyPress={handleKeyPress}
-                onSelectionChange={handleSelectionChange}
-                autoCapitalize="none"
-                autoComplete="off"
-                autoCorrect={false}
-                autoFocus={autoFocus}
-                keyboardType="ascii-capable"
-                editable={!readOnly}
-                testID={`${testID}-text-input`}
-                ref={inputRef}
-                multiline
-            />
-        </View>
+                <View 
+                    style={[
+                        {
+                            width,
+                            height: height || '100%',
+                            marginTop,
+                            marginBottom,
+                        },
+                    ]} 
+                    testID={testID}
+                >
+                    <SyntaxHighlighter
+                        language={language}
+                        addedStyle={{
+                            ...addedStyle,
+                            highlighterLineHeight: calculatedHighlighterLineHeight,
+                        }}
+                        syntaxStyle={syntaxStyle}
+                        scrollEnabled={false}
+                        showLineNumbers={showLineNumbers}
+                        testID={`${testID}-syntax-highlighter`}
+                        ref={highlighterRef}
+                    >
+                        {value}
+                    </SyntaxHighlighter>
+                    <TextInput
+                        style={[
+                            styles.input,
+                            {
+                                lineHeight: calculatedInputLineHeight,
+                                color: inputColor,
+                                fontFamily: fontFamily,
+                                fontSize: fontSize,
+                                padding,
+                                paddingTop: padding,
+                                paddingLeft: lineNumbersPadding,
+                            },
+                        ]}
+                        value={value}
+                        selection={selection}
+                        onChangeText={handleChangeText}
+                        onScroll={handleScroll}
+                        onKeyPress={handleKeyPress}
+                        onSelectionChange={handleSelectionChange}
+                        autoCapitalize="none"
+                        autoComplete="off"
+                        autoCorrect={false}
+                        autoFocus={autoFocus}
+                        keyboardType="ascii-capable"
+                        editable={!readOnly}
+                        testID={`${testID}-text-input`}
+                        ref={inputRef}
+                        multiline
+                    />
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 };
 
