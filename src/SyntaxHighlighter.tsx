@@ -112,6 +112,12 @@ const SyntaxHighlighter = (props: PropsWithForwardRef): JSX.Element => {
         ...highlighterProps
     } = props;
 
+    // Remove double newline addition - it was in two places before
+    // Only add extra newlines if scrolling is enabled
+    if (scrollEnabled) {
+        highlighterProps.children += '\n\n';
+    }
+
     // Default values
     const {
         fontFamily = Platform.OS === 'ios' ? 'Menlo-Regular' : 'monospace',
@@ -129,7 +135,9 @@ const SyntaxHighlighter = (props: PropsWithForwardRef): JSX.Element => {
     const lineNumbersFontSize = 0.7 * fontSize;
 
     // Prevents the last line from clipping when scrolling
-    highlighterProps.children += '\n\n';
+    if (scrollEnabled) {
+        highlighterProps.children += '\n\n';
+    }
 
     const cleanStyle = (style: TextStyle) => {
         const clean: TextStyle = {
@@ -183,7 +191,7 @@ const SyntaxHighlighter = (props: PropsWithForwardRef): JSX.Element => {
                 );
 
                 const lineNumberElement =
-                    key !== '0' || index >= nodes.length - 2 ? undefined : (
+                    key !== '0' || index >= nodes.length - (scrollEnabled ? 2 : 0) ? undefined : (
                         <Text
                             key={`$line.${index}`}
                             style={{
@@ -232,15 +240,16 @@ const SyntaxHighlighter = (props: PropsWithForwardRef): JSX.Element => {
                     stylesheet.hljs,
                     {
                         width: '100%',
-                        height: '100%',
                         backgroundColor: backgroundColor || stylesheet.hljs.background,
-                        // Prevents YGValue error
                         padding: 0,
                         paddingTop: padding,
                         paddingRight: padding,
                         paddingBottom: padding,
-                    },
+                    }
                 ]}
+                contentContainerStyle={{
+                    flexGrow: scrollEnabled ? 1 : undefined // Only grow when scrolling is enabled
+                }}
                 testID={`${testID}-scroll-view`}
                 ref={forwardedRef}
                 scrollEnabled={scrollEnabled}
