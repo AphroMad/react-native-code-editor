@@ -153,24 +153,33 @@ const TextCodeSyntaxHighlighter = (props: TextCodeSyntaxHighlighterProps): JSX.E
         }, []);
 
     const nativeRenderer = ({ rows }: RendererParams) => {
-        const Wrapper = isInline ? Text : View;
-
-        return (
-            <Wrapper
+        return isInline ? (
+            <Text
                 style={[
                     stylesheet.hljs,
                     {
                         backgroundColor: backgroundColor || stylesheet.hljs.background,
-                        padding: isInline ? 0 : padding,
+                        padding: 0,
                         margin: 0,
-                    },
-                    !isInline && {
+                    }
+                ]}
+            >
+                {renderNode(rows)}
+            </Text>
+        ) : (
+            <View
+                style={[
+                    stylesheet.hljs,
+                    {
+                        backgroundColor: backgroundColor || stylesheet.hljs.background,
+                        padding,
+                        margin: 0,
                         flex: 1,
                     }
                 ]}
             >
                 {renderNode(rows)}
-            </Wrapper>
+            </View>
         );
     };
 
