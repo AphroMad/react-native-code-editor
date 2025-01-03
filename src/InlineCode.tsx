@@ -2,28 +2,38 @@ import React from 'react';
 import { Text } from 'react-native';
 import SyntaxHighlighter from './TextCodeSyntaxHighlighter';
 import { Languages } from './languages';
-import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { resolveTheme } from './utils/themeResolver';
 
 type Props = {
     code: string;
     language?: Languages;
     style?: {
         fontSize?: number;
+        backgroundColor?: string;
     };
+    themeName?: string;
 };
 
-const InlineCode = ({ code, language = 'python', style = {} }: Props): JSX.Element => {
-    const { fontSize = 14 } = style;
+const InlineCode = ({
+    code,
+    language = 'python',
+    style = {},
+    themeName = 'atomOneDark',
+}: Props): JSX.Element => {
+    const {
+        fontSize = 14,
+        backgroundColor = 'transparent',
+    } = style;
 
     return (
         <Text>
             <SyntaxHighlighter
                 language={language}
-                syntaxStyle={atomOneDark}
+                syntaxStyle={resolveTheme(themeName)}
                 addedStyle={{
                     fontSize,
                     padding: 0,
-                    backgroundColor: 'transparent',
+                    backgroundColor,
                     isInline: true,
                 }}
                 scrollEnabled={false}

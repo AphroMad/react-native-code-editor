@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import SyntaxHighlighter from './SyntaxHighlighter';
 import { Languages } from './languages';
-import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { resolveTheme } from './utils/themeResolver';
 
 type Props = {
     code: string;
@@ -13,13 +13,15 @@ type Props = {
         backgroundColor?: string;
     };
     showLineNumbers?: boolean;
+    themeName?: string;
 };
 
 const MultilineCode = ({ 
     code, 
     language = 'python', 
     style = {}, 
-    showLineNumbers = false 
+    showLineNumbers = false,
+    themeName = 'atomOneDark',
 }: Props): JSX.Element => {
     const { 
         fontSize = 14,
@@ -31,7 +33,7 @@ const MultilineCode = ({
         <View style={styles.container}>
             <SyntaxHighlighter
                 language={language}
-                syntaxStyle={atomOneDark}
+                syntaxStyle={resolveTheme(themeName)}
                 addedStyle={{
                     fontSize,
                     padding,
